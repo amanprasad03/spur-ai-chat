@@ -1,5 +1,7 @@
 # 💬 Spur AI Agent - Live Customer Support Agent
 
+[Demo - SPUR-AI-Agent](https://spur-ai-chat-1-1wym.onrender.com/)
+
 A production-ready AI-powered customer support chat system built for e-commerce platforms. This application demonstrates real-time conversation management with persistent chat history, intelligent AI responses, and a polished user experience.
 
 ## 🎯 Project Overview
@@ -133,7 +135,6 @@ CREATE TABLE messages (
 4. **Database setup**
 
    The database is automatically initialized when you first run the server. The schema is applied from `src/db/schema.sql` and creates:
-
    - `conversations` table
    - `messages` table
 

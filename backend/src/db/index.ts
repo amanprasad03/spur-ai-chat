@@ -1,7 +1,12 @@
 import Database from "better-sqlite3";
 import { readFileSync } from "fs";
 import path from "path";
+import fs from "fs";
 
+const dataDir = path.join(__dirname, "../../data");
+if (!fs.existsSync(dataDir)) {
+  fs.mkdirSync(dataDir, { recursive: true });
+}
 // Open database file
 const db = new Database(path.join(__dirname, "../../data/chat.db"), {
   verbose: console.log,
