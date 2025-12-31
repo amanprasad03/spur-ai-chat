@@ -8,6 +8,7 @@ export type ChatMessage = {
   id: string;
   sender: Sender;
   text: string;
+  createdAt: string;
 };
 
 type ChatWindowProps = {
@@ -15,6 +16,7 @@ type ChatWindowProps = {
   error: string | null;
   input: string;
   isSending: boolean;
+  canSend: boolean;
   onInputChange: (value: string) => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
 };
@@ -24,6 +26,7 @@ function ChatWindow({
   error,
   input,
   isSending,
+  canSend,
   onInputChange,
   onSubmit,
 }: ChatWindowProps) {
@@ -35,6 +38,10 @@ function ChatWindow({
 
   return (
     <main className='w-full max-w-4xl bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col gap-3 shadow-xl'>
+      <div className='flex items-center justify-between text-sm'>
+        <div className='text-slate-300'>Conversation</div>
+      </div>
+
       <div
         className='min-h-[320px] max-h-[60vh] overflow-y-auto flex flex-col gap-3 pr-1'
         role='log'
@@ -53,6 +60,7 @@ function ChatWindow({
       <MessageInput
         value={input}
         isSending={isSending}
+        canSend={canSend}
         onChange={onInputChange}
         onSubmit={onSubmit}
       />

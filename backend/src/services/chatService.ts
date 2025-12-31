@@ -12,6 +12,20 @@ export function createConversation(): Conversation {
   return conversation;
 }
 
+export function getConversation(id: number): Conversation | undefined {
+  return db.prepare("SELECT * FROM conversations WHERE id = ?").get(id) as
+    | Conversation
+    | undefined;
+}
+
+export function listConversations(): Conversation[] {
+  return db
+    .prepare(
+      "SELECT id, created_at, updated_at FROM conversations ORDER BY updated_at DESC"
+    )
+    .all() as Conversation[];
+}
+
 export function saveMessage(
   conversationId: number,
   sender: Sender,
@@ -21,6 +35,10 @@ export function saveMessage(
     "INSERT INTO messages (conversation_id, sender, text) VALUES (?, ?, ?)"
   );
   const result = stmt.run(conversationId, sender, text);
+
+  db.prepare(
+    "UPDATE conversations SET updated_at = CURRENT_TIMESTAMP WHERE id = ?"
+  ).run(conversationId);
 
   const message = db
     .prepare("SELECT * FROM messages WHERE id = ?")
@@ -38,4 +56,12 @@ export function getRecentMessages(
   );
 
   return stmt.all(conversationId, limit) as Message[];
+}
+
+export function listMessages(conversationId: number): Message[] {
+  const stmt = db.prepare(
+    "SELECT * FROM messages WHERE conversation_id = ? ORDER BY created_at ASC"
+  );
+
+  return stmt.all(conversationId) as Message[];
 }

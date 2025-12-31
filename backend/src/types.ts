@@ -11,4 +11,5 @@ export interface Message {
 export interface Conversation {
   id: number;
   created_at: string;
+  updated_at: string;
 }
