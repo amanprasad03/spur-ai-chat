@@ -17,6 +17,7 @@ type ChatWindowProps = {
   input: string;
   isSending: boolean;
   canSend: boolean;
+  conversationId: number | null;
   onInputChange: (value: string) => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
 };
@@ -27,6 +28,7 @@ function ChatWindow({
   input,
   isSending,
   canSend,
+  conversationId,
   onInputChange,
   onSubmit,
 }: ChatWindowProps) {
@@ -38,8 +40,10 @@ function ChatWindow({
 
   return (
     <main className='w-full max-w-4xl bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col gap-3 shadow-xl'>
-      <div className='flex items-center justify-between text-sm'>
-        <div className='text-slate-300'>Conversation</div>
+      <div className='flex items-center justify-between border-b border-slate-800 pb-3'>
+        <div className='text-slate-300 font-semibold text-lg'>
+          {conversationId ? `Chat #${conversationId}` : "New Chat"}
+        </div>
       </div>
 
       <div
@@ -47,7 +51,7 @@ function ChatWindow({
         role='log'
         aria-live='polite'
       >
-        <MessageList messages={messages} />
+        <MessageList messages={messages} isSending={isSending} />
         <div ref={endRef} />
       </div>
 

@@ -276,9 +276,9 @@ function ChatPage() {
     <div className='min-h-screen bg-slate-950 text-slate-50 flex flex-col items-center px-4 py-8'>
       <header className='w-full max-w-5xl flex items-center justify-between mb-4'>
         <div>
-          <div className='text-2xl font-semibold'>Support Chat</div>
-          <div className='text-sm text-slate-300 mt-1'>
-            Ask about shipping, returns, or hours.
+          <div className='text-2xl font-semibold'>Customer Support</div>
+          <div className='text-sm text-slate-400 mt-1'>
+            Get instant help with orders, products, shipping, returns, and more.
           </div>
         </div>
       </header>
@@ -297,6 +297,7 @@ function ChatPage() {
           input={input}
           isSending={isSending}
           canSend={canSend}
+          conversationId={activeConversationId}
           onInputChange={setInput}
           onSubmit={handleSubmit}
         />

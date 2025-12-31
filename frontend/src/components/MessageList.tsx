@@ -1,15 +1,17 @@
 import type { ChatMessage } from "./ChatWindow";
 import { formatTime } from "../utils/formatTime";
+import MarkdownRenderer from "./MarkdownRenderer";
 
 type MessageListProps = {
   messages: ChatMessage[];
+  isSending?: boolean;
 };
 
 const getAvatar = (sender: "user" | "ai"): string => {
   return sender === "user" ? "👤" : "🤖";
 };
 
-function MessageList({ messages }: MessageListProps) {
+function MessageList({ messages, isSending = false }: MessageListProps) {
   if (messages.length === 0) {
     return (
       <div className='text-center text-slate-400 py-6'>
@@ -62,7 +64,11 @@ function MessageList({ messages }: MessageListProps) {
                     : "bg-slate-800 border-slate-700 text-slate-100"
                 }`}
               >
-                {msg.text}
+                {msg.sender === "ai" ? (
+                  <MarkdownRenderer content={msg.text} />
+                ) : (
+                  msg.text
+                )}
               </div>
             </div>
 
@@ -77,6 +83,37 @@ function MessageList({ messages }: MessageListProps) {
           </div>
         );
       })}
+
+      {isSending && (
+        <div className='flex gap-2 max-w-[85%] self-start'>
+          <div className='text-2xl flex-shrink-0 mt-0.5'>🤖</div>
+          <div className='flex flex-col items-start'>
+            <div className='text-xs text-slate-400 mb-1'>Support</div>
+            <div className='px-4 py-3 rounded-xl border bg-slate-800 border-slate-700 text-slate-100'>
+              <div className='flex gap-1 items-center'>
+                <span
+                  className='animate-bounce'
+                  style={{ animationDelay: "0ms" }}
+                >
+                  •
+                </span>
+                <span
+                  className='animate-bounce'
+                  style={{ animationDelay: "150ms" }}
+                >
+                  •
+                </span>
+                <span
+                  className='animate-bounce'
+                  style={{ animationDelay: "300ms" }}
+                >
+                  •
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
