@@ -1,5 +1,11 @@
 # 💬 Spur AI Agent - Live Customer Support Agent
 
+## 🚀 Demo
+
+- [Demo - SPUR-AI-Agent](https://spur-ai-chat-1-1wym.onrender.com/)
+
+**Note:** Your OpenAI API key (LLM key) is stored only in your browser (localStorage) and is never sent to or stored on our server.
+
 ---
 
 ## 🚩 Branch: `user-api-key-deploy`
