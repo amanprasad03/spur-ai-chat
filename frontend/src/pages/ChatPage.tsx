@@ -1,20 +1,12 @@
 import { type FormEvent, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import { AxiosError } from "axios";
 import ConversationList from "../components/ConversationList";
 import ChatWindow, { type ChatMessage } from "../components/ChatWindow";
-
-type ConversationMeta = {
-  id: number;
-  createdAt: string;
-  updatedAt: string;
-};
+import * as api from "../services/api";
+import type { ConversationMeta } from "../types";
 
 const ACTIVE_CONVERSATION_KEY = "active_conversation_id";
-const API_BASE =
-  (import.meta.env.VITE_API_URL as string | undefined)?.replace(
-    /\/message$/,
-    ""
-  ) || "http://localhost:3000/chat";
 
 function ChatPage() {
   const [searchParams] = useSearchParams();
@@ -42,21 +34,11 @@ function ChatPage() {
     const storedId = parseId(localStorage.getItem(ACTIVE_CONVERSATION_KEY));
 
     try {
-      const response = await fetch(`${API_BASE}/conversations`);
-
-      if (!response.ok) {
-        throw new Error(`Request failed with status ${response.status}`);
-      }
-
-      const data = (await response.json()) as {
-        conversations?: ConversationMeta[];
-      };
-
-      const list = data.conversations ?? [];
+      const list = await api.getConversations();
       setConversations(list);
 
       if (list.length === 0) {
-        const created = await createConversationRemote();
+        const created = await api.createConversation();
         setConversations([created]);
         setActiveConversationId(created.id);
         setMessages([]);
@@ -93,67 +75,29 @@ function ChatPage() {
     void fetchMessages(activeConversationId);
   }, [activeConversationId]);
 
-  const createConversationRemote = async (): Promise<ConversationMeta> => {
-    const response = await fetch(`${API_BASE}/conversation`, {
-      method: "POST",
-    });
-
-    if (!response.ok) {
-      throw new Error(`Request failed with status ${response.status}`);
-    }
-
-    const data = (await response.json()) as {
-      conversationId?: number;
-      createdAt?: string;
-      updatedAt?: string;
-    };
-
-    if (!data.conversationId) {
-      throw new Error("Missing conversationId in response");
-    }
-
-    return {
-      id: data.conversationId,
-      createdAt: data.createdAt ?? new Date().toISOString(),
-      updatedAt: data.updatedAt ?? data.createdAt ?? new Date().toISOString(),
-    };
-  };
-
   const fetchMessages = async (conversationId: number) => {
     setIsLoadingMessages(true);
     setError(null);
 
     try {
-      const response = await fetch(
-        `${API_BASE}/conversation/${conversationId}/messages`
-      );
+      const messages = await api.getMessages(conversationId);
 
-      if (response.status === 404) {
+      const normalized: ChatMessage[] = messages.map((message, index) => ({
+        id: `${conversationId}-${index}-${message.createdAt ?? Date.now()}`,
+        sender: message.sender === "user" ? "user" : "ai",
+        text: message.text,
+        createdAt: message.createdAt,
+      }));
+
+      setMessages(normalized);
+    } catch (err) {
+      if (err instanceof AxiosError && err.response?.status === 404) {
         setError("Conversation not found.");
         setActiveConversationId(null);
         setMessages([]);
         return;
       }
 
-      if (!response.ok) {
-        throw new Error(`Request failed with status ${response.status}`);
-      }
-
-      const data = (await response.json()) as {
-        messages?: { sender: string; text: string; createdAt: string }[];
-      };
-
-      const normalized: ChatMessage[] = (data.messages ?? []).map(
-        (message, index) => ({
-          id: `${conversationId}-${index}-${message.createdAt ?? Date.now()}`,
-          sender: message.sender === "user" ? "user" : "ai",
-          text: message.text,
-          createdAt: message.createdAt,
-        })
-      );
-
-      setMessages(normalized);
-    } catch (err) {
       console.error("Failed to load messages", err);
       setError("Unable to load messages. Please try again.");
       setMessages([]);
@@ -166,10 +110,8 @@ function ChatPage() {
     setError(null);
 
     try {
-      const created = await createConversationRemote();
-
+      const created = await api.createConversation();
       setConversations((prev) => [created, ...prev]);
-
       setActiveConversationId(created.id);
       setMessages([]);
     } catch (err) {
@@ -207,8 +149,7 @@ function ChatPage() {
     setError(null);
     setInput("");
 
-    // Optimistic user message with temporary timestamp.
-    // When messages are re-fetched, this will be replaced with the server timestamp.
+    // Optimistic user message with temporary timestamp
     const userMessage: ChatMessage = {
       id: crypto.randomUUID(),
       sender: "user",
@@ -220,36 +161,10 @@ function ChatPage() {
     setIsSending(true);
 
     try {
-      const response = await fetch(`${API_BASE}/message`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          message: text,
-          conversationId,
-        }),
+      const response = await api.sendMessage({
+        message: text,
+        conversationId,
       });
-
-      if (response.status === 404) {
-        setError("Conversation not found.");
-        return;
-      }
-
-      if (!response.ok) {
-        throw new Error(`Request failed with status ${response.status}`);
-      }
-
-      const data = (await response.json()) as {
-        reply?: string;
-        createdAt?: string;
-      };
-
-      const replyText =
-        data.reply?.trim() ||
-        "I had trouble generating a response. Please try again.";
-
-      const replyCreatedAt = data.createdAt || new Date().toISOString();
 
       if (activeConversationId === conversationId) {
         setMessages((prev) => [
@@ -257,12 +172,17 @@ function ChatPage() {
           {
             id: crypto.randomUUID(),
             sender: "ai",
-            text: replyText,
-            createdAt: replyCreatedAt,
+            text: response.reply,
+            createdAt: response.createdAt,
           },
         ]);
       }
     } catch (err) {
+      if (err instanceof AxiosError && err.response?.status === 404) {
+        setError("Conversation not found.");
+        return;
+      }
+
       console.error("Failed to send message", err);
       setError("Unable to send message right now. Please try again.");
     } finally {

@@ -1,5 +1,5 @@
 import type { ChatMessage } from "./ChatWindow";
-import { formatTime } from "../utils/formatTime";
+import { formatTime } from "../utils";
 import MarkdownRenderer from "./MarkdownRenderer";
 
 type MessageListProps = {
