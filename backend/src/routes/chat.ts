@@ -97,8 +97,11 @@ router.post("/message", async (req: Request, res: Response) => {
     // Get conversation history
     const history = getRecentMessages(conversation.id);
 
+    // Get API key from header (user-provided) or use env variable
+    const apiKey = req.headers["x-openai-key"] as string | undefined;
+
     // Generate AI reply
-    const aiReply = await generateReply(history, message.trim());
+    const aiReply = await generateReply(history, message.trim(), apiKey);
 
     // Save AI reply
     const aiMessage = saveMessage(conversation.id, "ai", aiReply);

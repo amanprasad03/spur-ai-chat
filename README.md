@@ -1,5 +1,13 @@
 # 💬 Spur AI Agent - Live Customer Support Agent
 
+---
+
+## 🚩 Branch: `user-api-key-deploy`
+
+This branch is intended for public deployments where users must provide their own OpenAI API key. The backend will not use a default key, and the UI prompts users to enter their key before using the chat. Use this branch to safely deploy the app without exposing or paying for a shared OpenAI API key.
+
+---
+
 A production-ready AI-powered customer support chat system built for e-commerce platforms. This application demonstrates real-time conversation management with persistent chat history, intelligent AI responses, and a polished user experience.
 
 ## 🎯 Project Overview
@@ -9,7 +17,8 @@ This is a full-stack implementation of an AI live chat agent that simulates a cu
 ### ✨ Key Features
 
 - 🤖 AI responses using OpenAI's GPT-4o-mini
-- 💬 Multiple conversations with seamless switching
+- � **User-provided API keys** - Users bring their own OpenAI key (no server costs)
+- �💬 Multiple conversations with seamless switching
 - 💾 Persistent chat history in SQLite
 - 📝 Markdown support (bold, lists, code blocks)
 - ⌨️ Typing indicator while AI responds
@@ -127,13 +136,14 @@ CREATE TABLE messages (
 
    ```env
    PORT=3000
-   OPENAI_API_KEY=your_openai_api_key_here
+   OPENAI_API_KEY=your_openai_api_key_here  # Optional - users can provide their own
    ```
+
+   **Note:** The `OPENAI_API_KEY` is optional. If not provided, users must enter their own API key in the frontend settings. This is recommended for deployments to avoid paying for all users' API costs.
 
 4. **Database setup**
 
    The database is automatically initialized when you first run the server. The schema is applied from `src/db/schema.sql` and creates:
-
    - `conversations` table
    - `messages` table
 
@@ -181,7 +191,13 @@ CREATE TABLE messages (
 
    Visit `http://localhost:5173` in your browser
 
-## 🛠️ Tech Stack
+6. **Set your OpenAI API Key**
+   - Click "Set API Key" button in the top right
+   - Enter your OpenAI API key from [platform.openai.com/api-keys](https://platform.openai.com/api-keys)
+   - Your key is stored locally in your browser and sent directly with API requests
+   - **Privacy:** The key is never saved on the server
+
+## �🛠️ Tech Stack
 
 **Backend:** Node.js, Express, TypeScript, SQLite (better-sqlite3), OpenAI API  
 **Frontend:** React 18, TypeScript, Vite, Tailwind CSS, Axios, react-markdown

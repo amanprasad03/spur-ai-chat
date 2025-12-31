@@ -3,10 +3,12 @@ import { useSearchParams } from "react-router-dom";
 import { AxiosError } from "axios";
 import ConversationList from "../components/ConversationList";
 import ChatWindow, { type ChatMessage } from "../components/ChatWindow";
+import ApiKeyModal from "../components/ApiKeyModal";
 import * as api from "../services/api";
 import type { ConversationMeta } from "../types";
 
 const ACTIVE_CONVERSATION_KEY = "active_conversation_id";
+const API_KEY_STORAGE_KEY = "openai_api_key";
 
 function ChatPage() {
   const [searchParams] = useSearchParams();
@@ -19,7 +21,25 @@ function ChatPage() {
   const [isSending, setIsSending] = useState(false);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showApiKeyModal, setShowApiKeyModal] = useState(false);
+  const [hasApiKey, setHasApiKey] = useState(false);
   const initializedRef = useRef(false);
+
+  useEffect(() => {
+    // Check if API key exists on mount
+    const key = localStorage.getItem(API_KEY_STORAGE_KEY);
+    setHasApiKey(!!key);
+  }, []);
+
+  const handleSaveApiKey = (key: string) => {
+    if (key) {
+      localStorage.setItem(API_KEY_STORAGE_KEY, key);
+      setHasApiKey(true);
+    } else {
+      localStorage.removeItem(API_KEY_STORAGE_KEY);
+      setHasApiKey(false);
+    }
+  };
 
   const parseId = (value: string | null): number | null => {
     if (!value) return null;
@@ -201,7 +221,40 @@ function ChatPage() {
             Get instant help with orders, products, shipping, returns, and more.
           </div>
         </div>
+        <button
+          onClick={() => setShowApiKeyModal(true)}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+            hasApiKey
+              ? "bg-green-900/30 text-green-400 border border-green-800 hover:bg-green-900/40"
+              : "bg-indigo-600 text-white hover:bg-indigo-700"
+          }`}
+        >
+          <span className="text-lg">{hasApiKey ? "🔑" : "⚙️"}</span>
+          <span>{hasApiKey ? "API Key Set" : "Set API Key"}</span>
+        </button>
       </header>
+
+      {!hasApiKey && (
+        <div className="w-full max-w-5xl mb-4 bg-amber-900/20 border border-amber-700 rounded-lg p-4">
+          <div className="flex items-start gap-3">
+            <span className="text-2xl">⚠️</span>
+            <div>
+              <div className="font-medium text-amber-200 mb-1">
+                OpenAI API Key Required
+              </div>
+              <div className="text-sm text-amber-300/90">
+                To use this chat, please provide your OpenAI API key. Your key is stored locally and never saved on our servers.{" "}
+                <button
+                  onClick={() => setShowApiKeyModal(true)}
+                  className="underline hover:text-amber-200 font-medium"
+                >
+                  Set it now
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className='w-full max-w-5xl grid gap-4 lg:grid-cols-[260px_1fr]'>
         <ConversationList
@@ -222,6 +275,13 @@ function ChatPage() {
           onSubmit={handleSubmit}
         />
       </div>
+
+      <ApiKeyModal
+        isOpen={showApiKeyModal}
+        onClose={() => setShowApiKeyModal(false)}
+        onSave={handleSaveApiKey}
+        currentKey={localStorage.getItem(API_KEY_STORAGE_KEY) || ""}
+      />
     </div>
   );
 }

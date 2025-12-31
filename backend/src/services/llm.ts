@@ -1,10 +1,6 @@
 import OpenAI from "openai";
 import { Message } from "../types";
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
 const SYSTEM_PROMPT = `You are a helpful and professional customer support agent for a large online e-commerce marketplace (similar to Amazon, Flipkart, eBay).
 
 MARKETPLACE OVERVIEW:
@@ -75,9 +71,22 @@ IMPORTANT PRINCIPLES:
 
 export async function generateReply(
   conversationHistory: Message[],
-  userMessage: string
+  userMessage: string,
+  apiKey?: string
 ): Promise<string> {
   try {
+    // Use user-provided key or fall back to env variable
+    const openaiKey = apiKey || process.env.OPENAI_API_KEY;
+
+    if (!openaiKey) {
+      return "Please provide your OpenAI API key in settings to use this chat.";
+    }
+
+    // Create OpenAI client with the provided key
+    const openai = new OpenAI({
+      apiKey: openaiKey,
+    });
+
     const messages: OpenAI.ChatCompletionMessageParam[] = [
       { role: "system", content: SYSTEM_PROMPT },
     ];
