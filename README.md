@@ -265,8 +265,4 @@ Focused on core chat functionality. Easy to add later with JWT in Axios intercep
 **Axios over Fetch**  
 Cleaner API, easier error handling, and interceptor support for future auth.
 
-## 📄 License
-
-This project was created as a take-home assignment for Spur. Feel free to use it as a reference or starting point for your own projects.
-
 For questions or issues, feel free to open an issue in the repository.
